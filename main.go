@@ -12,7 +12,13 @@ func main() {
 		port = "8080"
 	}
 
-	http.Handle("/", http.FileServer(http.Dir("./web/dist")))
+	assetsPath := "./web/dist"
+	isLocal := os.Getenv("IS_LOCAL")
+	if isLocal == "" {
+		assetsPath = "/app/web/dist"
+	}
+
+	http.Handle("/", http.FileServer(http.Dir(assetsPath)))
 
 	log.Println("listening on", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
