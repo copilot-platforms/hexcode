@@ -2,9 +2,14 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"strings"
+	"time"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
@@ -13,20 +18,36 @@ func main() {
 		port = "8080"
 	}
 
+	activityProtocol, err := NewActivityLogProtocol()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(activityProtocol)
+
 	assetsPath := "./web/dist"
 	isLocal := os.Getenv("IS_LOCAL")
 	if isLocal == "" {
 		assetsPath = "/app/web/dist"
 	}
 
+	handlers := APIHandlers{
+		ActivityLogProtocol: activityProtocol,
+	}
+
 	http.Handle("/", http.FileServer(http.Dir(assetsPath)))
-	http.HandleFunc("/data", GetActivityStats)
+	http.HandleFunc("/data", handlers.GetActivityStats)
+	http.HandleFunc("/events", handlers.WebhookEvents)
 
 	log.Println("listening on", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
-func GetActivityStats(w http.ResponseWriter, r *http.Request) {
+type APIHandlers struct {
+	ActivityLogProtocol *ActivityLogProtocol
+}
+
+func (h *APIHandlers) GetActivityStats(w http.ResponseWriter, r *http.Request) {
 	result := ActivityStatsResponse{
 		Data: []ActivityStatsInfo{
 			{
@@ -188,4 +209,103 @@ func GetActivityStats(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
+}
+
+type WebhookPayload struct {
+	EventType string                 `json:"eventType"`
+	Created   string                 `json:"created"`
+	Object    string                 `json:"object"`
+	Data      map[string]interface{} `json:"data"`
+}
+
+func (h *APIHandlers) WebhookEvents(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var requestPayload WebhookPayload
+	err := decoder.Decode(&requestPayload)
+	if err != nil {
+		fmt.Println("not able to decode payload")
+		return
+	}
+
+	activityLog := ActivityLog{
+		EventType:  requestPayload.EventType,
+		CreateDate: time.Now(),
+	}
+	switch requestPayload.EventType {
+	case "client.created":
+		activityLog.CreatedBy = CreateTypeAdmin
+		inviteURL, ok := requestPayload.Data["inviteUrl"]
+		if ok && strings.Contains(inviteURL.(string), "/u/") {
+			activityLog.CreatedBy = CreateTypeClient
+		}
+
+		activityLog.UserID = parseField(requestPayload.Data, "id")
+	case "client.deleted":
+		activityLog.CreatedBy = CreateTypeAdmin
+		activityLog.UserID = parseField(requestPayload.Data, "id")
+	case "client.activated":
+		activityLog.CreatedBy = CreateTypeAdmin
+		activityLog.UserID = parseField(requestPayload.Data, "id")
+	case "form_response_completed":
+		activityLog.CreatedBy = CreateTypeClient
+		createdBy := parseField(requestPayload.Data, "clientId")
+		activityLog.UserID = createdBy
+	case "file.created", "link.created", "message.sent":
+		createdByFieldName := "createdBy"
+		if requestPayload.EventType == "message.sent" {
+			createdByFieldName = "senderId"
+		}
+
+		createdBy := parseField(requestPayload.Data, createdByFieldName)
+		activityLog.UserID = createdBy
+		activityLog.CreatedBy = CreateTypeAdmin
+		if createdBy != "" {
+			_, err := GetClient(createdBy)
+			if err == nil {
+				// it means that client is not found
+				activityLog.CreatedBy = CreateTypeClient
+			}
+		}
+	default:
+		return
+	}
+
+	_ = h.ActivityLogProtocol.InsertActivity(activityLog)
+}
+
+func parseField(src map[string]interface{}, field string) string {
+	fieldValue, ok := src[field]
+	if ok {
+		return fieldValue.(string)
+	}
+
+	return ""
+}
+
+func GetClient(id string) (map[string]interface{}, error) {
+	apiKey := os.Getenv("API_KEY")
+
+	client := http.Client{}
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/clients/%s", os.Getenv("HOST"), id), nil)
+	if err != nil {
+		return nil, fmt.Errorf("GET error: %v", err)
+	}
+
+	req.Header.Set("X-API-KEY", apiKey)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("GET error: %v", err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Status error: %v", resp.StatusCode)
+	}
+
+	var result = map[string]interface{}{}
+	decoder := json.NewDecoder(resp.Body)
+	err = decoder.Decode(&result)
+	return result, err
 }
