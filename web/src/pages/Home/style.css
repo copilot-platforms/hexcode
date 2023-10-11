@@ -45,3 +45,13 @@ img:hover {
 		border: 1px solid #bbb;
 	}
 }
+
+.graph-container {
+	display: flex;
+	flex-flow: row wrap;
+	justify-content: space-between;
+}
+
+.pie-container {
+	width: "450px"
+}

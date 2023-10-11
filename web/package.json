@@ -10,6 +10,7 @@
 		"@emotion/react": "^11.11.1",
 		"@emotion/styled": "^11.11.0",
 		"@mui/x-charts": "^6.0.0-alpha.14",
+		"@preact/signals": "^1.2.1",
 		"preact": "^10.13.1",
 		"preact-iso": "^2.3.2",
 		"preact-render-to-string": "^6.2.2"
