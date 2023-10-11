@@ -2,19 +2,19 @@ package main
 
 import "time"
 
-type CreateType string
+type CreatedByType string
 
 const (
-	CreateTypeClient CreateType = "client"
-	CreateTypeAdmin  CreateType = "admin"
+	CreateTypeClient CreatedByType = "client"
+	CreateTypeAdmin  CreatedByType = "admin"
 )
 
 type ActivityLog struct {
-	ID         string     `json:"id"`
-	Type       string     `json:"type"`
-	UserID     string     `json:"user_id"`
-	CreateType CreateType `json:"create_type"`
-	CreateDate *time.Time `json:"create_date"`
+	ID         string        `json:"id"`
+	Type       string        `json:"type"`
+	UserID     string        `json:"user_id"`
+	CreateBy   CreatedByType `json:"create_by"`
+	CreateDate *time.Time    `json:"create_date"`
 }
 
 type ActivityStatsResponse struct {
