@@ -87,7 +87,7 @@ func (ap *ActivityLogProtocol) GetCountForEvents(eventType string, createdBy Cre
 }
 
 func (ap *ActivityLogProtocol) EventCountOverTime(eventType string) (count []int, err error) {
-	row, err := ap.DB.Query("select count(created_date) from activity_logs where event_type = ? and created_date >= datetime('now', '-7 days') group by strftime('%d', created_date) order by strftime('%d', created_date)", eventType)
+	row, err := ap.DB.Query("select count(created_date) from activity_logs where event_type = 'created_date' and created_date >= datetime('now', '-7 days') group by strftime('%d', created_date) order by strftime('%d', created_date)", eventType)
 	if err != nil {
 		return
 	}
@@ -100,6 +100,37 @@ func (ap *ActivityLogProtocol) EventCountOverTime(eventType string) (count []int
 		}
 
 		count = append(count, dayCount)
+	}
+
+	return
+}
+
+func (ap *ActivityLogProtocol) EventCountByUser() (data []ActivityStatsDataPoint, err error) {
+	row, err := ap.DB.Query("select count(*), user_id, event_type from activity_logs where created_date >= datetime('now', '-7 days') group by user_id")
+	if err != nil {
+		return
+	}
+
+	defer row.Close()
+	for row.Next() {
+		var event ActivityStatsDataPoint
+		if err = row.Scan(&event.Count, &event.Key, &event.Label); err != nil {
+			return
+		}
+
+		client, err := GetClient(event.Key)
+		event.Key = "Demo Client"
+		if err == nil {
+			firstName, ok := client["givenName"]
+			if ok && firstName != "" {
+				familyName, ok := client["familyName"]
+				if ok && familyName != "" {
+					event.Key = fmt.Sprintf("%s %s", firstName, familyName)
+				}
+			}
+		}
+
+		data = append(data, event)
 	}
 
 	return
