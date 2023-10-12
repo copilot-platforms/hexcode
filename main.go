@@ -48,167 +48,186 @@ type APIHandlers struct {
 }
 
 func (h *APIHandlers) GetActivityStats(w http.ResponseWriter, r *http.Request) {
-	result := ActivityStatsResponse{
-		Data: []ActivityStatsInfo{
+	data := []ActivityStatsInfo{}
+	signups, err := h.SignupData()
+	if err == nil {
+		data = append(data, *signups)
+	}
+
+	data = append(data, ActivityStatsInfo{
+		Type:  ActivityStatsTypeLine,
+		Title: "Signups in last 7 days",
+		Data: []ActivityStatsDataPoint{
 			{
-				Type:  ActivityStatsTypePie,
-				Title: "Signup source",
-				Data: []ActivityStatsDataPoint{
-					{
-						Key:   "abc",
-						Label: "Direct signup",
-						Count: 12,
-					},
-					{
-						Key:   "xyz",
-						Label: "Invited",
-						Count: 25,
-					},
-				},
+				Key:   "mon",
+				Label: "Mon",
+				Count: 12,
 			},
 			{
-				Type:  ActivityStatsTypeLine,
-				Title: "Signups in last 7 days",
-				Data: []ActivityStatsDataPoint{
-					{
-						Key:   "mon",
-						Label: "Mon",
-						Count: 12,
-					},
-					{
-						Key:   "tue",
-						Label: "Tues",
-						Count: 25,
-					},
-					{
-						Key:   "wed",
-						Label: "Wed",
-						Count: 20,
-					},
-					{
-						Key:   "thur",
-						Label: "Thurs",
-						Count: 35,
-					},
-					{
-						Key:   "fri",
-						Label: "Fri",
-						Count: 41,
-					},
-					{
-						Key:   "sat",
-						Label: "Sat",
-						Count: 25,
-					},
-					{
-						Key:   "sun",
-						Label: "Sun",
-						Count: 43,
-					},
-				},
+				Key:   "tue",
+				Label: "Tues",
+				Count: 25,
 			},
 			{
-				Type:  ActivityStatsTypeBarSingle,
-				Title: "Activity per portal",
-				Data: []ActivityStatsDataPoint{
-					{
-						Key:   "clients-deleted",
-						Label: "Clients deleted",
-						Count: 12,
-					},
-					{
-						Key:   "new-clients-activated",
-						Label: "New clients activated",
-						Count: 25,
-					},
-					{
-						Key:   "forms-submitted",
-						Label: "Forms submitted",
-						Count: 20,
-					},
-					{
-						Key:   "files-admin",
-						Label: "Files by admin",
-						Count: 35,
-					},
-					{
-						Key:   "files-clients",
-						Label: "Files by clients",
-						Count: 41,
-					},
-					{
-						Key:   "links-admin",
-						Label: "Links by admin",
-						Count: 35,
-					},
-					{
-						Key:   "links-clients",
-						Label: "Links by clients",
-						Count: 41,
-					},
-					{
-						Key:   "messages-admin",
-						Label: "Messages by admin",
-						Count: 35,
-					},
-					{
-						Key:   "messages-clients",
-						Label: "Messages by clients",
-						Count: 41,
-					},
-				},
+				Key:   "wed",
+				Label: "Wed",
+				Count: 20,
 			},
 			{
-				Type:  ActivityStatsTypeBarMulti,
-				Title: "Activity per client",
-				Data: []ActivityStatsDataPoint{
-					{
-						Key:   "john-doe",
-						Label: "Files",
-						Count: 10,
-					},
-					{
-						Key:   "john-doe",
-						Label: "Links",
-						Count: 2,
-					},
-					{
-						Key:   "john-doe",
-						Label: "Forms",
-						Count: 19,
-					},
-					{
-						Key:   "john-doe",
-						Label: "Messages",
-						Count: 8,
-					},
-					{
-						Key:   "jane-doe",
-						Label: "Files",
-						Count: 15,
-					},
-					{
-						Key:   "jane-doe",
-						Label: "Links",
-						Count: 10,
-					},
-					{
-						Key:   "jane-doe",
-						Label: "Forms",
-						Count: 10,
-					},
-					{
-						Key:   "jane-doe",
-						Label: "Messages",
-						Count: 8,
-					},
-				},
+				Key:   "thur",
+				Label: "Thurs",
+				Count: 35,
+			},
+			{
+				Key:   "fri",
+				Label: "Fri",
+				Count: 41,
+			},
+			{
+				Key:   "sat",
+				Label: "Sat",
+				Count: 25,
+			},
+			{
+				Key:   "sun",
+				Label: "Sun",
+				Count: 43,
 			},
 		},
+	})
+	data = append(data, ActivityStatsInfo{
+		Type:  ActivityStatsTypeBarSingle,
+		Title: "Activity per portal",
+		Data: []ActivityStatsDataPoint{
+			{
+				Key:   "clients-deleted",
+				Label: "Clients deleted",
+				Count: 12,
+			},
+			{
+				Key:   "new-clients-activated",
+				Label: "New clients activated",
+				Count: 25,
+			},
+			{
+				Key:   "forms-submitted",
+				Label: "Forms submitted",
+				Count: 20,
+			},
+			{
+				Key:   "files-admin",
+				Label: "Files by admin",
+				Count: 35,
+			},
+			{
+				Key:   "files-clients",
+				Label: "Files by clients",
+				Count: 41,
+			},
+			{
+				Key:   "links-admin",
+				Label: "Links by admin",
+				Count: 35,
+			},
+			{
+				Key:   "links-clients",
+				Label: "Links by clients",
+				Count: 41,
+			},
+			{
+				Key:   "messages-admin",
+				Label: "Messages by admin",
+				Count: 35,
+			},
+			{
+				Key:   "messages-clients",
+				Label: "Messages by clients",
+				Count: 41,
+			},
+		},
+	})
+	data = append(data, ActivityStatsInfo{
+		Type:  ActivityStatsTypeBarMulti,
+		Title: "Activity per client",
+		Data: []ActivityStatsDataPoint{
+			{
+				Key:   "john-doe",
+				Label: "Files",
+				Count: 10,
+			},
+			{
+				Key:   "john-doe",
+				Label: "Links",
+				Count: 2,
+			},
+			{
+				Key:   "john-doe",
+				Label: "Forms",
+				Count: 19,
+			},
+			{
+				Key:   "john-doe",
+				Label: "Messages",
+				Count: 8,
+			},
+			{
+				Key:   "jane-doe",
+				Label: "Files",
+				Count: 15,
+			},
+			{
+				Key:   "jane-doe",
+				Label: "Links",
+				Count: 10,
+			},
+			{
+				Key:   "jane-doe",
+				Label: "Forms",
+				Count: 10,
+			},
+			{
+				Key:   "jane-doe",
+				Label: "Messages",
+				Count: 8,
+			},
+		},
+	})
+
+	result := ActivityStatsResponse{
+		Data: data,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
+}
+
+func (h *APIHandlers) SignupData() (*ActivityStatsInfo, error) {
+	clientCount, err := h.ActivityLogProtocol.GetCountForSignups(CreateTypeClient)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	adminCount, err := h.ActivityLogProtocol.GetCountForSignups(CreateTypeAdmin)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return &ActivityStatsInfo{
+		Type:  ActivityStatsTypePie,
+		Title: "Signup source",
+		Data: []ActivityStatsDataPoint{
+			{
+				Key:   "direct-signup",
+				Label: "Direct",
+				Count: clientCount,
+			},
+			{
+				Key:   "invited",
+				Label: "Invited",
+				Count: adminCount,
+			},
+		},
+	}, nil
 }
 
 type WebhookPayload struct {
