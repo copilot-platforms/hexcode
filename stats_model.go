@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"time"
 )
 
@@ -35,7 +36,13 @@ CREATE TABLE IF NOT EXISTS activity_logs (
 );`
 
 func NewActivityLogProtocol() (*ActivityLogProtocol, error) {
-	db, err := sql.Open("sqlite3", "./data/events.db")
+	sqlPath := "./data/events.db"
+	isLocal := os.Getenv("IS_LOCAL")
+	if isLocal == "" {
+		sqlPath = "/data/events.db"
+	}
+
+	db, err := sql.Open("sqlite3", sqlPath)
 	if err != nil {
 		return nil, err
 	}
