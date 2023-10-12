@@ -19,3 +19,8 @@ primary_region = "mad"
 [mounts]
   source="event_data"
   destination="/data"
+
+[env]
+  API_KEY="NhOVXgGOj15dVls6vdBOr20S7IlkFcsd5m6RQI0Q"
+  HOST="https://api.copilot-staging.com/v0"
+  CGO_ENABLED=1
