@@ -66,7 +66,7 @@ func (ap *ActivityLogProtocol) InsertActivity(activity ActivityLog) error {
 }
 
 func (ap *ActivityLogProtocol) GetCountForSignups(createdBy CreatedByType) (int, error) {
-	row, err := ap.DB.Query("SELECT COUNT(*) AS record_count FROM activity_logs WHERE create_by = ? AND created_date >= datetime('now', '-7 days')", createdBy)
+	row, err := ap.DB.Query("SELECT COUNT(*) AS record_count FROM activity_logs WHERE event_type = 'client.created' AND create_by = ? AND created_date >= datetime('now', '-7 days')", createdBy)
 	if err != nil {
 		log.Fatal(err)
 	}
