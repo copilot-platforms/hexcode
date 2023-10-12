@@ -233,10 +233,10 @@ func (h *APIHandlers) WebhookEvents(w http.ResponseWriter, r *http.Request) {
 	}
 	switch requestPayload.EventType {
 	case "client.created":
-		activityLog.CreatedBy = CreateTypeAdmin
+		activityLog.CreatedBy = CreateTypeClient
 		inviteURL, ok := requestPayload.Data["inviteUrl"]
 		if ok && strings.Contains(inviteURL.(string), "/u/") {
-			activityLog.CreatedBy = CreateTypeClient
+			activityLog.CreatedBy = CreateTypeAdmin
 		}
 
 		activityLog.UserID = parseField(requestPayload.Data, "id")
@@ -244,7 +244,7 @@ func (h *APIHandlers) WebhookEvents(w http.ResponseWriter, r *http.Request) {
 		activityLog.CreatedBy = CreateTypeAdmin
 		activityLog.UserID = parseField(requestPayload.Data, "id")
 	case "client.activated":
-		activityLog.CreatedBy = CreateTypeAdmin
+		activityLog.CreatedBy = CreateTypeClient
 		activityLog.UserID = parseField(requestPayload.Data, "id")
 	case "form_response_completed":
 		activityLog.CreatedBy = CreateTypeClient
