@@ -95,57 +95,12 @@ func (h *APIHandlers) GetActivityStats(w http.ResponseWriter, r *http.Request) {
 			},
 		},
 	})
-	data = append(data, ActivityStatsInfo{
-		Type:  ActivityStatsTypeBarSingle,
-		Title: "Activity per portal",
-		Data: []ActivityStatsDataPoint{
-			{
-				Key:   "clients-deleted",
-				Label: "Clients deleted",
-				Count: 12,
-			},
-			{
-				Key:   "new-clients-activated",
-				Label: "New clients activated",
-				Count: 25,
-			},
-			{
-				Key:   "forms-submitted",
-				Label: "Forms submitted",
-				Count: 20,
-			},
-			{
-				Key:   "files-admin",
-				Label: "Files by admin",
-				Count: 35,
-			},
-			{
-				Key:   "files-clients",
-				Label: "Files by clients",
-				Count: 41,
-			},
-			{
-				Key:   "links-admin",
-				Label: "Links by admin",
-				Count: 35,
-			},
-			{
-				Key:   "links-clients",
-				Label: "Links by clients",
-				Count: 41,
-			},
-			{
-				Key:   "messages-admin",
-				Label: "Messages by admin",
-				Count: 35,
-			},
-			{
-				Key:   "messages-clients",
-				Label: "Messages by clients",
-				Count: 41,
-			},
-		},
-	})
+
+	activityPerPortal, err := h.ActivityPerPortal()
+	if err == nil {
+		data = append(data, *activityPerPortal)
+	}
+
 	data = append(data, ActivityStatsInfo{
 		Type:  ActivityStatsTypeBarMulti,
 		Title: "Activity per client",
@@ -201,13 +156,112 @@ func (h *APIHandlers) GetActivityStats(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
-func (h *APIHandlers) SignupData() (*ActivityStatsInfo, error) {
-	clientCount, err := h.ActivityLogProtocol.GetCountForSignups(CreateTypeClient)
+func (h *APIHandlers) ActivityPerPortal() (*ActivityStatsInfo, error) {
+	deletedClients, err := h.ActivityLogProtocol.GetCountForEvents("client.deleted", CreateTypeAdmin)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	adminCount, err := h.ActivityLogProtocol.GetCountForSignups(CreateTypeAdmin)
+	activatedClients, err := h.ActivityLogProtocol.GetCountForEvents("client.activated", CreateTypeClient)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	formsSubmitted, err := h.ActivityLogProtocol.GetCountForEvents("form_response.completed", CreateTypeClient)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	filesByAdmin, err := h.ActivityLogProtocol.GetCountForEvents("file.created", CreateTypeAdmin)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	filesByClient, err := h.ActivityLogProtocol.GetCountForEvents("file.created", CreateTypeClient)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	linksByAdmin, err := h.ActivityLogProtocol.GetCountForEvents("link.created", CreateTypeAdmin)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	linksByClient, err := h.ActivityLogProtocol.GetCountForEvents("link.created", CreateTypeClient)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	messagesByAdmin, err := h.ActivityLogProtocol.GetCountForEvents("message.sent", CreateTypeAdmin)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	messagesByClient, err := h.ActivityLogProtocol.GetCountForEvents("message.sent", CreateTypeClient)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return &ActivityStatsInfo{
+		Type:  ActivityStatsTypeBarSingle,
+		Title: "Portal activity",
+		Data: []ActivityStatsDataPoint{
+			{
+				Key:   "clients-deleted",
+				Label: "Clients deleted",
+				Count: deletedClients,
+			},
+			{
+				Key:   "new-clients-activated",
+				Label: "New clients activated",
+				Count: activatedClients,
+			},
+			{
+				Key:   "forms-submitted",
+				Label: "Forms submitted",
+				Count: formsSubmitted,
+			},
+			{
+				Key:   "files-admin",
+				Label: "Files by admin",
+				Count: filesByAdmin,
+			},
+			{
+				Key:   "files-clients",
+				Label: "Files by clients",
+				Count: filesByClient,
+			},
+			{
+				Key:   "links-admin",
+				Label: "Links by admin",
+				Count: linksByAdmin,
+			},
+			{
+				Key:   "links-clients",
+				Label: "Links by clients",
+				Count: linksByClient,
+			},
+			{
+				Key:   "messages-admin",
+				Label: "Messages by admin",
+				Count: messagesByAdmin,
+			},
+			{
+				Key:   "messages-clients",
+				Label: "Messages by clients",
+				Count: messagesByClient,
+			},
+		},
+	}, nil
+}
+
+func (h *APIHandlers) SignupData() (*ActivityStatsInfo, error) {
+	clientCount, err := h.ActivityLogProtocol.GetCountForEvents("client.created", CreateTypeClient)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	adminCount, err := h.ActivityLogProtocol.GetCountForEvents("client.created", CreateTypeAdmin)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -265,7 +319,7 @@ func (h *APIHandlers) WebhookEvents(w http.ResponseWriter, r *http.Request) {
 	case "client.activated":
 		activityLog.CreatedBy = CreateTypeClient
 		activityLog.UserID = parseField(requestPayload.Data, "id")
-	case "form_response_completed":
+	case "form_response.completed":
 		activityLog.CreatedBy = CreateTypeClient
 		createdBy := parseField(requestPayload.Data, "clientId")
 		activityLog.UserID = createdBy
