@@ -54,47 +54,9 @@ func (h *APIHandlers) GetActivityStats(w http.ResponseWriter, r *http.Request) {
 		data = append(data, *signups)
 	}
 
-	data = append(data, ActivityStatsInfo{
-		Type:  ActivityStatsTypeLine,
-		Title: "Signups in last 7 days",
-		Data: []ActivityStatsDataPoint{
-			{
-				Key:   "mon",
-				Label: "Mon",
-				Count: 12,
-			},
-			{
-				Key:   "tue",
-				Label: "Tues",
-				Count: 25,
-			},
-			{
-				Key:   "wed",
-				Label: "Wed",
-				Count: 20,
-			},
-			{
-				Key:   "thur",
-				Label: "Thurs",
-				Count: 35,
-			},
-			{
-				Key:   "fri",
-				Label: "Fri",
-				Count: 41,
-			},
-			{
-				Key:   "sat",
-				Label: "Sat",
-				Count: 25,
-			},
-			{
-				Key:   "sun",
-				Label: "Sun",
-				Count: 43,
-			},
-		},
-	})
+	if signupTrend, err := h.SigupLineChart(); err == nil {
+		data = append(data, *signupTrend)
+	}
 
 	activityPerPortal, err := h.ActivityPerPortal()
 	if err == nil {
@@ -284,6 +246,33 @@ func (h *APIHandlers) SignupData() (*ActivityStatsInfo, error) {
 	}, nil
 }
 
+func (h *APIHandlers) SigupLineChart() (info *ActivityStatsInfo, err error) {
+	eventCounts, err := h.ActivityLogProtocol.EventCountOverTime("client.created")
+	if err != nil {
+		log.Default().Println("error while gathering data", err)
+		return
+	}
+
+	data := []ActivityStatsDataPoint{}
+	executionDay := time.Now()
+
+	for i, count := range eventCounts {
+		eventDay := executionDay.AddDate(0, 0, -i)
+		data = append(data, ActivityStatsDataPoint{
+			Key:   eventDay.Weekday().String(),
+			Label: eventDay.Weekday().String(),
+			Count: count,
+		})
+	}
+
+	info = &ActivityStatsInfo{
+		Type:  ActivityStatsTypeLine,
+		Title: "Signups in last 7 days",
+		Data:  data,
+	}
+	return
+}
+
 type WebhookPayload struct {
 	EventType string                 `json:"eventType"`
 	Created   string                 `json:"created"`
@@ -349,7 +338,13 @@ func (h *APIHandlers) WebhookEvents(w http.ResponseWriter, r *http.Request) {
 func parseField(src map[string]interface{}, field string) string {
 	fieldValue, ok := src[field]
 	if ok {
-		return fieldValue.(string)
+		value, ok := fieldValue.(string)
+		if !ok {
+			fmt.Println("panic on parsing field")
+			return ""
+		}
+
+		return value
 	}
 
 	return ""
