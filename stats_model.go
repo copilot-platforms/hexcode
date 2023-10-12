@@ -3,8 +3,8 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"os"
 	"log"
+	"os"
 	"time"
 )
 
@@ -84,6 +84,25 @@ func (ap *ActivityLogProtocol) GetCountForEvents(eventType string, createdBy Cre
 	}
 
 	return count, nil
+}
+
+func (ap *ActivityLogProtocol) EventCountOverTime(eventType string) (count []int, err error) {
+	row, err := ap.DB.Query("select count(created_date) from activity_logs where event_type = ? and created_date >= datetime('now', '-7 days') group by strftime('%d', created_date) order by strftime('%d', created_date)", eventType)
+	if err != nil {
+		return
+	}
+
+	defer row.Close()
+	for row.Next() {
+		var dayCount int
+		if err = row.Scan(&dayCount); err != nil {
+			return
+		}
+
+		count = append(count, dayCount)
+	}
+
+	return
 }
 
 type ActivityStatsResponse struct {
