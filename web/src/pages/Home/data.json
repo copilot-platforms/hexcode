@@ -1,0 +1,143 @@
+{
+  "data": [
+    {
+      "type": "pie",
+      "title": "Signup source",
+      "data": [
+        {
+          "key": "direct-signup",
+          "label": "Direct",
+          "count": 7
+        },
+        {
+          "key": "invited",
+          "label": "Invited",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "type": "line",
+      "title": "Signups in last 7 days",
+      "data": [
+        {
+          "key": "Friday",
+          "label": "Friday",
+          "count": 4
+        },
+        {
+          "key": "Thursday",
+          "label": "Thursday",
+          "count": 2
+        },
+        {
+          "key": "Wednesday",
+          "label": "Wednesday",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "type": "bar-single",
+      "title": "Portal activity",
+      "data": [
+        {
+          "key": "clients-deleted",
+          "label": "Clients deleted",
+          "count": 2
+        },
+        {
+          "key": "new-clients-activated",
+          "label": "New clients activated",
+          "count": 1
+        },
+        {
+          "key": "forms-submitted",
+          "label": "Forms submitted",
+          "count": 0
+        },
+        {
+          "key": "files-admin",
+          "label": "Files by admin",
+          "count": 0
+        },
+        {
+          "key": "files-clients",
+          "label": "Files by clients",
+          "count": 0
+        },
+        {
+          "key": "links-admin",
+          "label": "Links by admin",
+          "count": 0
+        },
+        {
+          "key": "links-clients",
+          "label": "Links by clients",
+          "count": 0
+        },
+        {
+          "key": "messages-admin",
+          "label": "Messages by admin",
+          "count": 7
+        },
+        {
+          "key": "messages-clients",
+          "label": "Messages by clients",
+          "count": 10
+        }
+      ]
+    },
+    {
+      "type": "bar-multiple",
+      "title": "Activity per client",
+      "data": [
+        {
+          "key": "qwdqwd qwdqwdqwd",
+          "label": "client.created",
+          "count": 1
+        },
+        {
+          "key": "John Cliient5",
+          "label": "client.created",
+          "count": 1
+        },
+        {
+          "key": "Demo Client",
+          "label": "message.sent",
+          "count": 7
+        },
+        {
+          "key": "John Client3",
+          "label": "message.sent",
+          "count": 9
+        },
+        {
+          "key": "wefwef ewfwefwef",
+          "label": "client.deleted",
+          "count": 1
+        },
+        {
+          "key": "Demo Client",
+          "label": "client.created",
+          "count": 6
+        },
+        {
+          "key": "wefwef wefwefwefwef",
+          "label": "client.deleted",
+          "count": 1
+        },
+        {
+          "key": "john client7",
+          "label": "client.created",
+          "count": 3
+        },
+        {
+          "key": "John Client4",
+          "label": "client.created",
+          "count": 1
+        }
+      ]
+    }
+  ]
+}

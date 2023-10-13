@@ -63,52 +63,9 @@ func (h *APIHandlers) GetActivityStats(w http.ResponseWriter, r *http.Request) {
 		data = append(data, *activityPerPortal)
 	}
 
-	data = append(data, ActivityStatsInfo{
-		Type:  ActivityStatsTypeBarMulti,
-		Title: "Activity per client",
-		Data: []ActivityStatsDataPoint{
-			{
-				Key:   "john-doe",
-				Label: "Files",
-				Count: 10,
-			},
-			{
-				Key:   "john-doe",
-				Label: "Links",
-				Count: 2,
-			},
-			{
-				Key:   "john-doe",
-				Label: "Forms",
-				Count: 19,
-			},
-			{
-				Key:   "john-doe",
-				Label: "Messages",
-				Count: 8,
-			},
-			{
-				Key:   "jane-doe",
-				Label: "Files",
-				Count: 15,
-			},
-			{
-				Key:   "jane-doe",
-				Label: "Links",
-				Count: 10,
-			},
-			{
-				Key:   "jane-doe",
-				Label: "Forms",
-				Count: 10,
-			},
-			{
-				Key:   "jane-doe",
-				Label: "Messages",
-				Count: 8,
-			},
-		},
-	})
+	if activityPerClient, err := h.PortalPerClient(); err == nil {
+		data = append(data, *activityPerClient)
+	}
 
 	result := ActivityStatsResponse{
 		Data: data,
@@ -268,6 +225,20 @@ func (h *APIHandlers) SigupLineChart() (info *ActivityStatsInfo, err error) {
 	info = &ActivityStatsInfo{
 		Type:  ActivityStatsTypeLine,
 		Title: "Signups in last 7 days",
+		Data:  data,
+	}
+	return
+}
+
+func (h *APIHandlers) PortalPerClient() (info *ActivityStatsInfo, err error) {
+	data, err := h.ActivityLogProtocol.EventCountByUser()
+	if err != nil {
+		return
+	}
+
+	info = &ActivityStatsInfo{
+		Type:  ActivityStatsTypeBarMulti,
+		Title: "Activity per client",
 		Data:  data,
 	}
 	return

@@ -105,6 +105,37 @@ func (ap *ActivityLogProtocol) EventCountOverTime(eventType string) (count []int
 	return
 }
 
+func (ap *ActivityLogProtocol) EventCountByUser() (data []ActivityStatsDataPoint, err error) {
+	row, err := ap.DB.Query("select count(*), user_id, event_type from activity_logs where created_date >= datetime('now', '-7 days') group by user_id ")
+	if err != nil {
+		return
+	}
+
+	defer row.Close()
+	for row.Next() {
+		var event ActivityStatsDataPoint
+		if err = row.Scan(&event.Count, &event.Key, &event.Label); err != nil {
+			return
+		}
+
+		client, err := GetClient(event.Key)
+		event.Key = "Demo Client"
+		if err == nil {
+			firstName, ok := client["givenName"]
+			if ok && firstName != "" {
+				familyName, ok := client["familyName"]
+				if ok && familyName != "" {
+					event.Key = fmt.Sprintf("%s %s", firstName, familyName)
+				}
+			}
+		}
+
+		data = append(data, event)
+	}
+
+	return
+}
+
 type ActivityStatsResponse struct {
 	Data []ActivityStatsInfo `json:"data"`
 }
