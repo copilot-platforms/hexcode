@@ -1,6 +1,7 @@
 import { BarChart, LineChart, PieChart } from "@mui/x-charts";
 import { useComputed, useSignal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
+import eventData from "./data.json";
 import "./style.css";
 
 const valueFormatter = (date: Date) =>
@@ -89,10 +90,14 @@ export function Home() {
           const seriesData = series.map((s) => {
             return {
               stack: "total",
-              data: event.data.filter((e) => e.label === s).map((e) => e.count),
+              data: event.data.map((e) => (e.label === s ? e.count : 0)),
               label: s,
             };
           });
+
+          const data = [...new Set(event.data.map((chunk, i) => chunk.key))];
+          console.log(seriesData);
+          console.log(data);
 
           return (
             <div>
@@ -101,7 +106,7 @@ export function Home() {
                 xAxis={[
                   {
                     scaleType: "band",
-                    data: [...new Set(event.data.map((chunk, i) => chunk.key))],
+                    data: data,
                   },
                 ]}
                 series={seriesData}
@@ -113,13 +118,12 @@ export function Home() {
       }
     });
 
-  const events = useSignal({ data: [] });
+  const events = useSignal(eventData || { data: [] });
   const graphs = useComputed(() => makeGraphs(events.value));
 
   async function loadData() {
     const response = await fetch("/data");
     const data = await response.json();
-    console.log("data is", data);
     events.value = data;
   }
 
